@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useXterm } from "../lib/useXterm";
 import { MAX_TERMINALS, useStore } from "../state/store";
+import { InlineEdit } from "./InlineEdit";
 
 interface Props {
   id: string;
@@ -17,6 +18,7 @@ export function TerminalView({ id, cwd, title, shell, dead, visible, active }: P
   const setActive = useStore((s) => s.setActive);
   const markTerminalDead = useStore((s) => s.markTerminalDead);
   const restartTerminal = useStore((s) => s.restartTerminal);
+  const renameTerminal = useStore((s) => s.renameTerminal);
   // A dead tab can only be revived if a live slot is free.
   const canRestart = useStore((s) => s.terminals.filter((t) => !t.dead).length < MAX_TERMINALS);
   const fontSize = useStore((s) => s.fontSize);
@@ -36,7 +38,10 @@ export function TerminalView({ id, cwd, title, shell, dead, visible, active }: P
       onMouseDown={() => setActive(id)}
     >
       <div className="term-pane-head">
-        <span className="term-pane-title">▸ {title}</span>
+        <span className="term-pane-title">
+          ▸{" "}
+          <InlineEdit value={title} onCommit={(t) => renameTerminal(id, t)} />
+        </span>
         {dead && <span className="term-pane-dead">● selesai</span>}
         {dead && (
           <button

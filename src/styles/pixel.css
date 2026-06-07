@@ -330,6 +330,20 @@ img.pixelated,
   color: var(--text);
 }
 
+/* Inline rename field (double-click a tab/workspace name). */
+.inline-edit {
+  font: inherit;
+  color: var(--text);
+  background: var(--ink);
+  border: 1px solid var(--gold);
+  outline: none;
+  padding: 0 3px;
+  margin: 0;
+  width: 12ch;
+  max-width: 100%;
+  vertical-align: baseline;
+}
+
 .ws-list {
   flex: 1;
   overflow-y: auto;

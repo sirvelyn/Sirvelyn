@@ -42,6 +42,8 @@ interface AppState {
   setWorkspaces: (w: Workspace[]) => void;
   addWorkspace: (w: Workspace) => void;
   removeWorkspace: (id: string) => void;
+  renameWorkspace: (id: string, name: string) => void;
+  renameTerminal: (id: string, title: string) => void;
   addTerminal: (workspaceId: string) => string | null;
   removeTerminal: (id: string) => void;
   markTerminalDead: (id: string) => void;
@@ -75,6 +77,16 @@ export const useStore = create<AppState>((set, get) => ({
         ? s
         : { workspaces: [...s.workspaces, w] },
     ),
+
+  renameWorkspace: (id, name) =>
+    set((s) => ({
+      workspaces: s.workspaces.map((w) => (w.id === id ? { ...w, name } : w)),
+    })),
+
+  renameTerminal: (id, title) =>
+    set((s) => ({
+      terminals: s.terminals.map((t) => (t.id === id ? { ...t, title } : t)),
+    })),
 
   removeWorkspace: (id) =>
     set((s) => {

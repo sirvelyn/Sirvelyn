@@ -1,5 +1,6 @@
 import { open } from "@tauri-apps/plugin-dialog";
 import { MAX_TERMINALS, useStore } from "../state/store";
+import { InlineEdit } from "./InlineEdit";
 
 function basename(p: string): string {
   const trimmed = p.replace(/[\\/]+$/, "");
@@ -12,6 +13,7 @@ export function Sidebar() {
   const terminals = useStore((s) => s.terminals);
   const addWorkspace = useStore((s) => s.addWorkspace);
   const removeWorkspace = useStore((s) => s.removeWorkspace);
+  const renameWorkspace = useStore((s) => s.renameWorkspace);
   const addTerminal = useStore((s) => s.addTerminal);
   const shells = useStore((s) => s.shells);
   const defaultShell = useStore((s) => s.defaultShell);
@@ -72,7 +74,12 @@ export function Sidebar() {
             <div className="ws-item" key={ws.id}>
               <div className="ws-info">
                 <span className="ws-name" title={ws.path}>
-                  🔑 {ws.name}
+                  🔑{" "}
+                  <InlineEdit
+                    value={ws.name}
+                    title={ws.path}
+                    onCommit={(name) => renameWorkspace(ws.id, name)}
+                  />
                 </span>
                 <span className="ws-path" title={ws.path}>
                   {ws.path}

@@ -459,26 +459,54 @@ img.pixelated,
 }
 .term-stage.split {
   display: grid;
-  gap: 6px;
-}
-.split.g1 {
-  grid-template-columns: 1fr;
-  grid-template-rows: 1fr;
-}
-.split.g2 {
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr;
-}
-.split.g4 {
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-}
-.split.g6 {
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: 1fr 1fr;
+  gap: 0;
+  padding: 0;
+  position: relative;
 }
 .term-stage.tabbed .term-pane {
   height: 100%;
+}
+
+/* ---- Split-view drag dividers (overlay the grid, never grid items) ---- */
+.split-divider {
+  position: absolute;
+  z-index: 5;
+}
+.split-divider::before {
+  content: "";
+  position: absolute;
+  background: var(--border-soft);
+}
+.split-divider:hover::before {
+  background: var(--gold);
+}
+.split-divider-v {
+  top: 0;
+  bottom: 0;
+  width: 9px;
+  transform: translateX(-50%);
+  cursor: col-resize;
+}
+.split-divider-v::before {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  transform: translateX(-50%);
+}
+.split-divider-h {
+  left: 0;
+  right: 0;
+  height: 9px;
+  transform: translateY(-50%);
+  cursor: row-resize;
+}
+.split-divider-h::before {
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  transform: translateY(-50%);
 }
 
 /* ---- Terminal pane ---- */

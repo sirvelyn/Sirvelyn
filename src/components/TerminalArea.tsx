@@ -1,11 +1,13 @@
 import { useStore } from "../state/store";
+import { useResizableGrid } from "../lib/useResizableGrid";
 import { TerminalView } from "./TerminalView";
 
-function gridClass(n: number): string {
-  if (n <= 1) return "g1";
-  if (n === 2) return "g2";
-  if (n <= 4) return "g4";
-  return "g6";
+/** Columns/rows the split grid uses for a given terminal count. */
+function gridDims(n: number): { cols: number; rows: number } {
+  if (n <= 1) return { cols: 1, rows: 1 };
+  if (n === 2) return { cols: 2, rows: 1 };
+  if (n <= 4) return { cols: 2, rows: 2 };
+  return { cols: 3, rows: 2 };
 }
 
 export function TerminalArea() {
@@ -15,6 +17,10 @@ export function TerminalArea() {
   const activeTerminalId = useStore((s) => s.activeTerminalId);
   const setViewMode = useStore((s) => s.setViewMode);
   const setActive = useStore((s) => s.setActive);
+
+  const { cols, rows } = gridDims(terminals.length);
+  const grid = useResizableGrid(cols, rows);
+  const split = viewMode === "split";
 
   const activeId = activeTerminalId ?? terminals[0]?.id ?? null;
   const cwdFor = (wsId: string) => workspaces.find((w) => w.id === wsId)?.path ?? ".";
@@ -59,9 +65,16 @@ export function TerminalArea() {
         </div>
       ) : (
         <div
-          className={`term-stage ${
-            viewMode === "split" ? `split ${gridClass(terminals.length)}` : "tabbed"
-          }`}
+          ref={grid.stageRef}
+          className={`term-stage ${split ? "split" : "tabbed"}`}
+          style={
+            split
+              ? {
+                  gridTemplateColumns: grid.gridTemplateColumns,
+                  gridTemplateRows: grid.gridTemplateRows,
+                }
+              : undefined
+          }
         >
           {terminals.map((t) => (
             <TerminalView
@@ -71,10 +84,19 @@ export function TerminalArea() {
               title={t.title}
               shell={t.shell}
               dead={t.dead}
-              visible={viewMode === "split" ? true : t.id === activeId}
+              visible={split ? true : t.id === activeId}
               active={t.id === activeId}
             />
           ))}
+          {split &&
+            grid.dividers.map((d) => (
+              <div
+                key={d.key}
+                className={d.className}
+                style={d.style}
+                onPointerDown={d.onPointerDown}
+              />
+            ))}
         </div>
       )}
     </main>

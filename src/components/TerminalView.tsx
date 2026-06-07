@@ -19,7 +19,8 @@ export function TerminalView({ id, cwd, title, shell, dead, visible, active }: P
   const restartTerminal = useStore((s) => s.restartTerminal);
   // A dead tab can only be revived if a live slot is free.
   const canRestart = useStore((s) => s.terminals.filter((t) => !t.dead).length < MAX_TERMINALS);
-  const { containerRef, refit } = useXterm(id, cwd, shell, () => markTerminalDead(id));
+  const fontSize = useStore((s) => s.fontSize);
+  const { containerRef, refit } = useXterm(id, cwd, fontSize, shell, () => markTerminalDead(id));
 
   // Re-fit when this pane becomes visible again (tab/view switch).
   useEffect(() => {

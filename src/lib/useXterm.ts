@@ -20,7 +20,13 @@ import {
  * tabs/view modes must hide (display:none), never unmount, so scrollback and
  * the shell process survive. Call `refit()` when the pane becomes visible.
  */
-export function useXterm(id: string, cwd: string, shell?: string, onExit?: () => void) {
+export function useXterm(
+  id: string,
+  cwd: string,
+  fontSize: number,
+  shell?: string,
+  onExit?: () => void,
+) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const termRef = useRef<Terminal | null>(null);
   const fitRef = useRef<FitAddon | null>(null);
@@ -53,7 +59,7 @@ export function useXterm(id: string, cwd: string, shell?: string, onExit?: () =>
 
     const term = new Terminal({
       fontFamily: '"JetBrains Mono", ui-monospace, monospace',
-      fontSize: 13,
+      fontSize,
       cursorBlink: true,
       allowProposedApi: true,
       scrollback: 8000,
@@ -152,6 +158,15 @@ export function useXterm(id: string, cwd: string, shell?: string, onExit?: () =>
       fitRef.current = null;
     };
   }, [id, cwd, shell, refit]);
+
+  // Apply font-size changes live without recreating the terminal (which would
+  // kill the shell). `fontSize` is intentionally not a dep of the spawn effect.
+  useEffect(() => {
+    const term = termRef.current;
+    if (!term) return;
+    term.options.fontSize = fontSize;
+    refit();
+  }, [fontSize, refit]);
 
   return { containerRef, refit };
 }

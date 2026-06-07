@@ -10,6 +10,7 @@ import { listShells } from "./pty";
 const FILE = "sirvelyn.json";
 const KEY_WORKSPACES = "workspaces";
 const KEY_DEFAULT_SHELL = "defaultShell";
+const KEY_FONT_SIZE = "fontSize";
 
 let store: Store | null = null;
 
@@ -23,6 +24,9 @@ export async function initPersistence(): Promise<void> {
     // keeps it as long as that shell is still installed.
     const savedShell = await store.get<string>(KEY_DEFAULT_SHELL);
     if (savedShell) useStore.getState().setDefaultShell(savedShell);
+
+    const savedFontSize = await store.get<number>(KEY_FONT_SIZE);
+    if (typeof savedFontSize === "number") useStore.getState().setFontSize(savedFontSize);
   } catch (e) {
     console.error("Persistence unavailable:", e);
   }
@@ -43,6 +47,9 @@ export async function initPersistence(): Promise<void> {
     }
     if (state.defaultShell !== prev.defaultShell && state.defaultShell) {
       void store?.set(KEY_DEFAULT_SHELL, state.defaultShell).then(() => store?.save());
+    }
+    if (state.fontSize !== prev.fontSize) {
+      void store?.set(KEY_FONT_SIZE, state.fontSize).then(() => store?.save());
     }
   });
 }

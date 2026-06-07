@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useStore, type AppStateSnapshot } from "../state/store";
+import { DEFAULT_FONT_SIZE, useStore, type AppStateSnapshot } from "../state/store";
 
 /** Display rows for the in-app shortcut guide (kept next to the handler). */
 export interface ShortcutDoc {
@@ -15,6 +15,8 @@ export const SHORTCUT_GUIDE: ShortcutDoc[] = [
   { keys: "Ctrl + Shift + 1 … 6", desc: "Lompat ke tab 1–6" },
   { keys: "Ctrl + Shift + C", desc: "Salin seleksi" },
   { keys: "Ctrl + Shift + V", desc: "Tempel ke terminal" },
+  { keys: "Ctrl + + / Ctrl + −", desc: "Perbesar / perkecil font" },
+  { keys: "Ctrl + 0", desc: "Reset ukuran font" },
 ];
 
 /** Workspace to spawn a new terminal in: the active terminal's, else the first. */
@@ -62,6 +64,15 @@ export function useShortcuts(): void {
       } else if (e.shiftKey && /^Digit[1-6]$/.test(e.code)) {
         const t = s.terminals[Number(e.code.slice(5)) - 1];
         if (t) s.setActive(t.id);
+        consume();
+      } else if (e.code === "Equal" || e.code === "NumpadAdd") {
+        s.setFontSize(s.fontSize + 1);
+        consume();
+      } else if (e.code === "Minus" || e.code === "NumpadSubtract") {
+        s.setFontSize(s.fontSize - 1);
+        consume();
+      } else if (e.code === "Digit0" || e.code === "Numpad0") {
+        s.setFontSize(DEFAULT_FONT_SIZE);
         consume();
       }
     };

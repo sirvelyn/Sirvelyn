@@ -23,6 +23,10 @@ export type ViewMode = "tabs" | "split";
 
 export const MAX_TERMINALS = 6;
 
+export const DEFAULT_FONT_SIZE = 13;
+export const MIN_FONT_SIZE = 8;
+export const MAX_FONT_SIZE = 28;
+
 interface AppState {
   workspaces: Workspace[];
   terminals: TerminalTab[];
@@ -32,6 +36,8 @@ interface AppState {
   shells: ShellInfo[];
   /** Shell path used for new terminals; null until shells are detected. */
   defaultShell: string | null;
+  /** Terminal font size in px, shared by all terminals. */
+  fontSize: number;
 
   setWorkspaces: (w: Workspace[]) => void;
   addWorkspace: (w: Workspace) => void;
@@ -45,6 +51,7 @@ interface AppState {
   setHydrated: (v: boolean) => void;
   setShells: (s: ShellInfo[]) => void;
   setDefaultShell: (path: string) => void;
+  setFontSize: (px: number) => void;
 }
 
 /** Full store value as returned by `useStore.getState()`. */
@@ -58,6 +65,7 @@ export const useStore = create<AppState>((set, get) => ({
   hydrated: false,
   shells: [],
   defaultShell: null,
+  fontSize: DEFAULT_FONT_SIZE,
 
   setWorkspaces: (workspaces) => set({ workspaces }),
 
@@ -144,4 +152,7 @@ export const useStore = create<AppState>((set, get) => ({
     })),
 
   setDefaultShell: (defaultShell) => set({ defaultShell }),
+
+  setFontSize: (px) =>
+    set({ fontSize: Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, Math.round(px))) }),
 }));

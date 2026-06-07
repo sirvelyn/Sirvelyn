@@ -88,6 +88,17 @@ img.pixelated,
   min-height: 0;
 }
 
+.app-loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+}
+
 /* ---- Buttons (pixel) ---- */
 .px-btn {
   font-family: var(--font-ui);

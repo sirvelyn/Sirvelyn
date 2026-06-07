@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import type { ShellInfo } from "../lib/pty";
 
 export interface Workspace {
   id: string;
@@ -10,6 +11,8 @@ export interface TerminalTab {
   id: string;
   workspaceId: string;
   title: string;
+  /** Absolute path of the shell this terminal was spawned with. */
+  shell?: string;
 }
 
 export type ViewMode = "tabs" | "split";
@@ -22,6 +25,9 @@ interface AppState {
   activeTerminalId: string | null;
   viewMode: ViewMode;
   hydrated: boolean;
+  shells: ShellInfo[];
+  /** Shell path used for new terminals; null until shells are detected. */
+  defaultShell: string | null;
 
   setWorkspaces: (w: Workspace[]) => void;
   addWorkspace: (w: Workspace) => void;
@@ -31,6 +37,8 @@ interface AppState {
   setActive: (id: string) => void;
   setViewMode: (m: ViewMode) => void;
   setHydrated: (v: boolean) => void;
+  setShells: (s: ShellInfo[]) => void;
+  setDefaultShell: (path: string) => void;
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -39,6 +47,8 @@ export const useStore = create<AppState>((set, get) => ({
   activeTerminalId: null,
   viewMode: "split",
   hydrated: false,
+  shells: [],
+  defaultShell: null,
 
   setWorkspaces: (workspaces) => set({ workspaces }),
 
@@ -70,7 +80,10 @@ export const useStore = create<AppState>((set, get) => ({
     const id = crypto.randomUUID();
     const n = s.terminals.filter((t) => t.workspaceId === workspaceId).length + 1;
     set({
-      terminals: [...s.terminals, { id, workspaceId, title: `${ws.name} #${n}` }],
+      terminals: [
+        ...s.terminals,
+        { id, workspaceId, title: `${ws.name} #${n}`, shell: s.defaultShell ?? undefined },
+      ],
       activeTerminalId: id,
     });
     return id;
@@ -89,4 +102,16 @@ export const useStore = create<AppState>((set, get) => ({
   setActive: (activeTerminalId) => set({ activeTerminalId }),
   setViewMode: (viewMode) => set({ viewMode }),
   setHydrated: (hydrated) => set({ hydrated }),
+
+  setShells: (shells) =>
+    set((s) => ({
+      shells,
+      // Keep the saved/selected default if still present, else pick the first.
+      defaultShell:
+        s.defaultShell && shells.some((sh) => sh.path === s.defaultShell)
+          ? s.defaultShell
+          : shells[0]?.path ?? null,
+    })),
+
+  setDefaultShell: (defaultShell) => set({ defaultShell }),
 }));

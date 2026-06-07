@@ -13,7 +13,8 @@ pub fn run() {
             pty::create_terminal,
             pty::write_terminal,
             pty::resize_terminal,
-            pty::close_terminal
+            pty::close_terminal,
+            pty::list_shells
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

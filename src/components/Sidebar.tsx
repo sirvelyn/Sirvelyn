@@ -13,6 +13,9 @@ export function Sidebar() {
   const addWorkspace = useStore((s) => s.addWorkspace);
   const removeWorkspace = useStore((s) => s.removeWorkspace);
   const addTerminal = useStore((s) => s.addTerminal);
+  const shells = useStore((s) => s.shells);
+  const defaultShell = useStore((s) => s.defaultShell);
+  const setDefaultShell = useStore((s) => s.setDefaultShell);
 
   const total = terminals.length;
   const atMax = total >= MAX_TERMINALS;
@@ -36,6 +39,23 @@ export function Sidebar() {
           {total}/{MAX_TERMINALS}
         </span>
       </div>
+
+      {shells.length > 0 && (
+        <label className="shell-picker" title="Shell untuk terminal baru">
+          <span className="shell-picker-label">SHELL</span>
+          <select
+            className="px-select"
+            value={defaultShell ?? ""}
+            onChange={(e) => setDefaultShell(e.target.value)}
+          >
+            {shells.map((sh) => (
+              <option key={sh.path} value={sh.path}>
+                {sh.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
 
       <button className="px-btn px-btn-block" onClick={pickFolder}>
         + Add Folder

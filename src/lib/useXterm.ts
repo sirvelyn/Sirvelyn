@@ -19,7 +19,7 @@ import {
  * tabs/view modes must hide (display:none), never unmount, so scrollback and
  * the shell process survive. Call `refit()` when the pane becomes visible.
  */
-export function useXterm(id: string, cwd: string) {
+export function useXterm(id: string, cwd: string, shell?: string) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const termRef = useRef<Terminal | null>(null);
   const fitRef = useRef<FitAddon | null>(null);
@@ -104,7 +104,7 @@ export function useXterm(id: string, cwd: string) {
       // Listeners are live; fit then spawn the pty on the next frame (layout settled).
       raf = requestAnimationFrame(() => {
         refit();
-        createTerminal(id, cwd, term.cols || 80, term.rows || 24).catch((e) =>
+        createTerminal(id, cwd, term.cols || 80, term.rows || 24, shell).catch((e) =>
           term.writeln(`\x1b[31mGagal memulai shell: ${e}\x1b[0m`),
         );
       });
@@ -126,7 +126,7 @@ export function useXterm(id: string, cwd: string) {
       termRef.current = null;
       fitRef.current = null;
     };
-  }, [id, cwd, refit]);
+  }, [id, cwd, shell, refit]);
 
   return { containerRef, refit };
 }

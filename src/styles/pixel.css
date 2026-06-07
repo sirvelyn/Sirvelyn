@@ -288,6 +288,37 @@ img.pixelated,
   box-shadow: 2px 2px 0 var(--border);
   padding: 2px 6px;
 }
+.shell-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.shell-picker-label {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+}
+.px-select {
+  flex: 1;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 2px solid var(--border);
+  box-shadow: 2px 2px 0 var(--border);
+  padding: 5px 6px;
+  cursor: pointer;
+}
+.px-select:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+.px-select option {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
 .ws-list {
   flex: 1;
   overflow-y: auto;

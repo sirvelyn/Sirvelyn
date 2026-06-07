@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::io::{Read, Write};
+use std::path::PathBuf;
 use std::sync::Mutex;
 use std::thread;
 
@@ -168,4 +169,71 @@ pub fn close_terminal(state: State<'_, PtyState>, id: String) -> Result<(), Stri
         let _ = session.child.kill();
     }
     Ok(())
+}
+
+/// A shell the user can pick for new terminals.
+#[derive(serde::Serialize)]
+pub struct ShellInfo {
+    /// Human-friendly label, e.g. "PowerShell".
+    name: String,
+    /// Absolute path passed to `create_terminal`'s `shell` argument.
+    path: String,
+}
+
+/// Resolve `exe` against the directories in `$PATH`, returning the first hit.
+fn which(exe: &str) -> Option<PathBuf> {
+    let path = std::env::var_os("PATH")?;
+    std::env::split_paths(&path)
+        .map(|dir| dir.join(exe))
+        .find(|candidate| candidate.is_file())
+}
+
+/// (label, executable, extra absolute fallback paths) for known shells.
+#[cfg(target_os = "windows")]
+fn shell_candidates() -> Vec<(&'static str, &'static str, &'static [&'static str])> {
+    vec![
+        ("PowerShell", "powershell.exe", &[]),
+        ("PowerShell 7", "pwsh.exe", &[]),
+        ("Command Prompt", "cmd.exe", &[]),
+        (
+            "Git Bash",
+            "bash.exe",
+            &[
+                r"C:\Program Files\Git\bin\bash.exe",
+                r"C:\Program Files (x86)\Git\bin\bash.exe",
+            ],
+        ),
+    ]
+}
+
+#[cfg(not(target_os = "windows"))]
+fn shell_candidates() -> Vec<(&'static str, &'static str, &'static [&'static str])> {
+    vec![
+        ("Bash", "bash", &[]),
+        ("Zsh", "zsh", &[]),
+        ("Fish", "fish", &[]),
+        ("Sh", "sh", &[]),
+    ]
+}
+
+/// List the shells actually installed on this machine, in preference order.
+/// The frontend offers these for new terminals; the chosen `path` is forwarded
+/// to `create_terminal`.
+#[tauri::command]
+pub fn list_shells() -> Vec<ShellInfo> {
+    shell_candidates()
+        .into_iter()
+        .filter_map(|(name, exe, fallbacks)| {
+            let resolved = which(exe).or_else(|| {
+                fallbacks
+                    .iter()
+                    .map(PathBuf::from)
+                    .find(|p| p.is_file())
+            })?;
+            Some(ShellInfo {
+                name: name.to_string(),
+                path: resolved.to_string_lossy().into_owned(),
+            })
+        })
+        .collect()
 }

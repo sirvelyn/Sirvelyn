@@ -3,8 +3,24 @@ import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 
 /** Thin wrappers around the Rust pty commands + output/exit event streams. */
 
-export function createTerminal(id: string, cwd: string, cols: number, rows: number) {
-  return invoke<void>("create_terminal", { id, cwd, cols, rows });
+export interface ShellInfo {
+  name: string;
+  path: string;
+}
+
+/** Shells detected as installed on this machine, in preference order. */
+export function listShells() {
+  return invoke<ShellInfo[]>("list_shells");
+}
+
+export function createTerminal(
+  id: string,
+  cwd: string,
+  cols: number,
+  rows: number,
+  shell?: string,
+) {
+  return invoke<void>("create_terminal", { id, cwd, cols, rows, shell });
 }
 
 export function writeTerminal(id: string, data: string) {

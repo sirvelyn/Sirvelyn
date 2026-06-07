@@ -6,14 +6,15 @@ interface Props {
   id: string;
   cwd: string;
   title: string;
+  shell?: string;
   visible: boolean;
   active: boolean;
 }
 
-export function TerminalView({ id, cwd, title, visible, active }: Props) {
+export function TerminalView({ id, cwd, title, shell, visible, active }: Props) {
   const removeTerminal = useStore((s) => s.removeTerminal);
   const setActive = useStore((s) => s.setActive);
-  const { containerRef, refit } = useXterm(id, cwd);
+  const { containerRef, refit } = useXterm(id, cwd, shell);
 
   // Re-fit when this pane becomes visible again (tab/view switch).
   useEffect(() => {

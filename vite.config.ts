@@ -8,6 +8,13 @@ const host = process.env.TAURI_DEV_HOST;
 export default defineConfig(async () => ({
   plugins: [react()],
 
+  build: {
+    // xterm + the WebGL addon push the main chunk to ~620 kB. For a desktop app
+    // loaded from local disk (not the network) that's fine and code-splitting it
+    // wouldn't help startup, so raise the warning threshold instead of chunking.
+    chunkSizeWarningLimit: 900,
+  },
+
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
   // 1. prevent Vite from obscuring rust errors

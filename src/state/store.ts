@@ -15,6 +15,8 @@ export interface TerminalTab {
   shell?: string;
   /** True once the shell process has exited (backend session already freed). */
   dead?: boolean;
+  /** Bumped on restart to force a fresh terminal mount via the React key. */
+  epoch?: number;
 }
 
 export type ViewMode = "tabs" | "split";
@@ -37,6 +39,7 @@ interface AppState {
   addTerminal: (workspaceId: string) => string | null;
   removeTerminal: (id: string) => void;
   markTerminalDead: (id: string) => void;
+  restartTerminal: (id: string) => void;
   setActive: (id: string) => void;
   setViewMode: (m: ViewMode) => void;
   setHydrated: (v: boolean) => void;
@@ -111,6 +114,20 @@ export const useStore = create<AppState>((set, get) => ({
     set((s) => ({
       terminals: s.terminals.map((t) => (t.id === id ? { ...t, dead: true } : t)),
     })),
+
+  restartTerminal: (id) =>
+    set((s) => {
+      const target = s.terminals.find((t) => t.id === id);
+      if (!target?.dead) return s; // only dead tabs can be revived
+      // Reviving makes it live again, so respect the slot limit.
+      if (s.terminals.filter((t) => !t.dead).length >= MAX_TERMINALS) return s;
+      return {
+        terminals: s.terminals.map((t) =>
+          t.id === id ? { ...t, dead: false, epoch: (t.epoch ?? 0) + 1 } : t,
+        ),
+        activeTerminalId: id,
+      };
+    }),
 
   setActive: (activeTerminalId) => set({ activeTerminalId }),
   setViewMode: (viewMode) => set({ viewMode }),

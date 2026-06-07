@@ -65,7 +65,7 @@ export function TerminalArea() {
         >
           {terminals.map((t) => (
             <TerminalView
-              key={t.id}
+              key={`${t.id}#${t.epoch ?? 0}`}
               id={t.id}
               cwd={cwdFor(t.workspaceId)}
               title={t.title}

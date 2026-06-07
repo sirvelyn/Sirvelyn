@@ -30,6 +30,29 @@ npm run tauri build
 Outputs an `.msi` and an NSIS `setup.exe` under
 `src-tauri/target/release/bundle/`.
 
+## Auto-update (mechanism wired, host pending)
+
+The Tauri updater plugin is set up; users check manually via the ⚙ settings
+dialog. To actually ship updates, finish these once releases are hosted:
+
+1. **Endpoint** — in `src-tauri/tauri.conf.json` → `plugins.updater.endpoints`,
+   replace the `OWNER/REPO` placeholder with your real GitHub repo. Until then,
+   "Cek pembaruan" will just report it can't check.
+2. **Signing key** — a keypair was generated. The public key is already in
+   `tauri.conf.json` (`plugins.updater.pubkey`); the private key is
+   `sirvelyn-updater.key` (git-ignored — **never commit it, keep a backup**;
+   losing it means updates can no longer be signed).
+3. **Build signed artifacts** for a release — set
+   `bundle.createUpdaterArtifacts: true`, then build with the key in env:
+   ```powershell
+   $env:TAURI_SIGNING_PRIVATE_KEY = Get-Content sirvelyn-updater.key -Raw
+   $env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD = ""
+   npm run tauri build
+   ```
+   Upload the generated `latest.json` and signed bundles to the release the
+   endpoint points at. (Normal builds work without the key while
+   `createUpdaterArtifacts` is off.)
+
 ## Stack
 
 - **Frontend:** React 19 + TypeScript + Vite, Zustand for state, xterm.js 5.5

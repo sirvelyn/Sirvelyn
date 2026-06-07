@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { SHORTCUT_GUIDE } from "../lib/useShortcuts";
+import { UpdateSection } from "./UpdateSection";
 
 interface Props {
   open: boolean;
@@ -38,6 +39,7 @@ export function SettingsModal({ open, onClose }: Props) {
               </li>
             ))}
           </ul>
+          <UpdateSection />
         </div>
       </div>
     </div>

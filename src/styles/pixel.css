@@ -684,3 +684,20 @@ img.pixelated,
   padding: 2px 7px;
   white-space: nowrap;
 }
+.modal-body .modal-section:not(:first-child) {
+  margin-top: 16px;
+}
+.update-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.update-msg {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.update-err {
+  color: var(--danger);
+}

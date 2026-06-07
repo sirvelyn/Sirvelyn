@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import { Channel } from "@tauri-apps/api/core";
+import { readText, writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
@@ -82,6 +83,28 @@ export function useXterm(id: string, cwd: string, shell?: string, onExit?: () =>
     }
 
     term.onData((d) => void writeTerminal(id, d));
+
+    // Copy/paste via the OS clipboard. Ctrl+Shift+C copies the current
+    // selection; Ctrl+Shift+V pastes into the pty. We use the Shift variants on
+    // purpose so plain Ctrl+C keeps sending SIGINT, and return false only for
+    // these combos so every other key still reaches the shell.
+    term.attachCustomKeyEventHandler((e) => {
+      if (e.type !== "keydown" || !e.ctrlKey || !e.shiftKey || e.altKey) return true;
+      if (e.code === "KeyC") {
+        const sel = term.getSelection();
+        if (sel) void writeText(sel).catch(() => {});
+        return false;
+      }
+      if (e.code === "KeyV") {
+        readText()
+          .then((text) => {
+            if (text && !disposed) void writeTerminal(id, text);
+          })
+          .catch(() => {});
+        return false;
+      }
+      return true;
+    });
 
     // Stream pty output over a Tauri Channel as raw bytes (no base64). Its
     // callback is registered synchronously here — before the backend spawns the

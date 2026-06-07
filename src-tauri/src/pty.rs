@@ -5,9 +5,8 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 use std::thread;
 
-use base64::engine::general_purpose::STANDARD;
-use base64::Engine as _;
 use portable_pty::{native_pty_system, Child, CommandBuilder, MasterPty, PtySize};
+use tauri::ipc::{Channel, InvokeResponseBody};
 use tauri::{AppHandle, Emitter, Manager, State};
 
 /// Maximum number of concurrent terminals (MVP constraint).
@@ -48,13 +47,14 @@ pub async fn create_terminal(
     cols: u16,
     rows: u16,
     shell: Option<String>,
+    on_output: Channel<InvokeResponseBody>,
 ) -> Result<(), String> {
     // openpty + spawning the shell are blocking calls. A synchronous Tauri
     // command runs on the main thread, so doing this here would freeze the UI
     // ("not responding") whenever a shell is slow to start. Run it on the
     // blocking pool instead and await the result.
     tauri::async_runtime::spawn_blocking(move || {
-        create_terminal_blocking(app, id, cwd, cols, rows, shell)
+        create_terminal_blocking(app, id, cwd, cols, rows, shell, on_output)
     })
     .await
     .map_err(|e| e.to_string())?
@@ -67,6 +67,7 @@ fn create_terminal_blocking(
     cols: u16,
     rows: u16,
     shell: Option<String>,
+    on_output: Channel<InvokeResponseBody>,
 ) -> Result<(), String> {
     let state = app.state::<PtyState>();
 
@@ -120,7 +121,7 @@ fn create_terminal_blocking(
             return Err("Maksimal 6 terminal".into());
         }
         Entry::Vacant(slot) => {
-            spawn_reader(app.clone(), id.clone(), reader);
+            spawn_reader(app.clone(), id.clone(), reader, on_output);
             slot.insert(TerminalSession {
                 master: pair.master,
                 writer,
@@ -131,18 +132,26 @@ fn create_terminal_blocking(
     Ok(())
 }
 
-/// Pump pty output to the frontend via `pty://output/{id}`, then on EOF drop the
-/// session and emit `pty://exit/{id}`.
-fn spawn_reader(app: AppHandle, tid: String, mut reader: Box<dyn Read + Send>) {
+/// Pump pty output to the frontend as raw bytes over `on_output` (chunks >=1KB
+/// travel as binary via Tauri's fetch fast-path, no base64), then on EOF drop
+/// the session and emit `pty://exit/{id}`.
+fn spawn_reader(
+    app: AppHandle,
+    tid: String,
+    mut reader: Box<dyn Read + Send>,
+    on_output: Channel<InvokeResponseBody>,
+) {
     thread::spawn(move || {
-        let out_event = format!("pty://output/{tid}");
         let mut buf = [0u8; 8192];
         loop {
             match reader.read(&mut buf) {
                 Ok(0) => break,
                 Ok(n) => {
-                    let payload = STANDARD.encode(&buf[..n]);
-                    if app.emit(&out_event, payload).is_err() {
+                    // Channel closed (terminal/webview gone) -> stop reading.
+                    if on_output
+                        .send(InvokeResponseBody::Raw(buf[..n].to_vec()))
+                        .is_err()
+                    {
                         break;
                     }
                 }

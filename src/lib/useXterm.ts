@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
+import { Channel } from "@tauri-apps/api/core";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
@@ -8,7 +9,6 @@ import {
   closeTerminal,
   createTerminal,
   onTerminalExit,
-  onTerminalOutput,
   resizeTerminal,
   writeTerminal,
 } from "./pty";
@@ -45,7 +45,6 @@ export function useXterm(id: string, cwd: string, shell?: string) {
 
     let disposed = false;
     let raf = 0;
-    let unlistenOut: (() => void) | undefined;
     let unlistenExit: (() => void) | undefined;
 
     const term = new Terminal({
@@ -81,30 +80,29 @@ export function useXterm(id: string, cwd: string, shell?: string) {
 
     term.onData((d) => void writeTerminal(id, d));
 
-    // Register the output/exit listeners BEFORE spawning the pty, otherwise the
-    // shell's first bytes (the initial prompt) can be emitted before `listen`
-    // has finished registering over IPC and would be lost.
+    // Stream pty output over a Tauri Channel as raw bytes (no base64). Its
+    // callback is registered synchronously here — before the backend spawns the
+    // shell — so the initial prompt can't be lost to a registration race.
+    const output = new Channel<ArrayBuffer>();
+    output.onmessage = (chunk) => {
+      if (!disposed) term.write(new Uint8Array(chunk));
+    };
+
+    // The exit notice still rides a regular event; register it before spawning.
     const setup = async () => {
-      const [uOut, uExit] = await Promise.all([
-        onTerminalOutput(id, (bytes) => {
-          if (!disposed) term.write(bytes);
-        }),
-        onTerminalExit(id, () => {
-          if (!disposed) term.writeln("\r\n\x1b[90m[ proses berakhir ]\x1b[0m");
-        }),
-      ]);
+      const uExit = await onTerminalExit(id, () => {
+        if (!disposed) term.writeln("\r\n\x1b[90m[ proses berakhir ]\x1b[0m");
+      });
       if (disposed) {
-        uOut();
         uExit();
         return;
       }
-      unlistenOut = uOut;
       unlistenExit = uExit;
 
-      // Listeners are live; fit then spawn the pty on the next frame (layout settled).
+      // Fit then spawn the pty on the next frame (layout settled).
       raf = requestAnimationFrame(() => {
         refit();
-        createTerminal(id, cwd, term.cols || 80, term.rows || 24, shell).catch((e) =>
+        createTerminal(id, cwd, term.cols || 80, term.rows || 24, output, shell).catch((e) =>
           term.writeln(`\x1b[31mGagal memulai shell: ${e}\x1b[0m`),
         );
       });
@@ -118,7 +116,6 @@ export function useXterm(id: string, cwd: string, shell?: string) {
       disposed = true;
       cancelAnimationFrame(raf);
       ro.disconnect();
-      unlistenOut?.();
       unlistenExit?.();
       void closeTerminal(id);
       webgl?.dispose();

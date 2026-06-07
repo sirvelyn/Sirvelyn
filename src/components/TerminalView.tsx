@@ -7,14 +7,16 @@ interface Props {
   cwd: string;
   title: string;
   shell?: string;
+  dead?: boolean;
   visible: boolean;
   active: boolean;
 }
 
-export function TerminalView({ id, cwd, title, shell, visible, active }: Props) {
+export function TerminalView({ id, cwd, title, shell, dead, visible, active }: Props) {
   const removeTerminal = useStore((s) => s.removeTerminal);
   const setActive = useStore((s) => s.setActive);
-  const { containerRef, refit } = useXterm(id, cwd, shell);
+  const markTerminalDead = useStore((s) => s.markTerminalDead);
+  const { containerRef, refit } = useXterm(id, cwd, shell, () => markTerminalDead(id));
 
   // Re-fit when this pane becomes visible again (tab/view switch).
   useEffect(() => {
@@ -25,12 +27,13 @@ export function TerminalView({ id, cwd, title, shell, visible, active }: Props) 
 
   return (
     <section
-      className={`term-pane${active ? " is-active" : ""}`}
+      className={`term-pane${active ? " is-active" : ""}${dead ? " is-dead" : ""}`}
       style={{ display: visible ? "flex" : "none" }}
       onMouseDown={() => setActive(id)}
     >
       <div className="term-pane-head">
         <span className="term-pane-title">▸ {title}</span>
+        {dead && <span className="term-pane-dead">● selesai</span>}
         <button
           className="px-btn px-btn-sm px-btn-ghost"
           title="Tutup terminal"

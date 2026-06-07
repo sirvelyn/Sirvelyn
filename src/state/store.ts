@@ -13,6 +13,8 @@ export interface TerminalTab {
   title: string;
   /** Absolute path of the shell this terminal was spawned with. */
   shell?: string;
+  /** True once the shell process has exited (backend session already freed). */
+  dead?: boolean;
 }
 
 export type ViewMode = "tabs" | "split";
@@ -34,6 +36,7 @@ interface AppState {
   removeWorkspace: (id: string) => void;
   addTerminal: (workspaceId: string) => string | null;
   removeTerminal: (id: string) => void;
+  markTerminalDead: (id: string) => void;
   setActive: (id: string) => void;
   setViewMode: (m: ViewMode) => void;
   setHydrated: (v: boolean) => void;
@@ -74,7 +77,9 @@ export const useStore = create<AppState>((set, get) => ({
 
   addTerminal: (workspaceId) => {
     const s = get();
-    if (s.terminals.length >= MAX_TERMINALS) return null;
+    // Only live terminals count toward the limit — exited-but-open tabs have
+    // already had their backend session freed, so they don't occupy a slot.
+    if (s.terminals.filter((t) => !t.dead).length >= MAX_TERMINALS) return null;
     const ws = s.workspaces.find((w) => w.id === workspaceId);
     if (!ws) return null;
     const id = crypto.randomUUID();
@@ -98,6 +103,11 @@ export const useStore = create<AppState>((set, get) => ({
           : s.activeTerminalId;
       return { terminals, activeTerminalId };
     }),
+
+  markTerminalDead: (id) =>
+    set((s) => ({
+      terminals: s.terminals.map((t) => (t.id === id ? { ...t, dead: true } : t)),
+    })),
 
   setActive: (activeTerminalId) => set({ activeTerminalId }),
   setViewMode: (viewMode) => set({ viewMode }),

@@ -19,10 +19,13 @@ import {
  * tabs/view modes must hide (display:none), never unmount, so scrollback and
  * the shell process survive. Call `refit()` when the pane becomes visible.
  */
-export function useXterm(id: string, cwd: string, shell?: string) {
+export function useXterm(id: string, cwd: string, shell?: string, onExit?: () => void) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const termRef = useRef<Terminal | null>(null);
   const fitRef = useRef<FitAddon | null>(null);
+  // Kept in a ref so an unstable callback never re-triggers the spawn effect.
+  const onExitRef = useRef(onExit);
+  onExitRef.current = onExit;
 
   const refit = useCallback(() => {
     const el = containerRef.current;
@@ -91,7 +94,9 @@ export function useXterm(id: string, cwd: string, shell?: string) {
     // The exit notice still rides a regular event; register it before spawning.
     const setup = async () => {
       const uExit = await onTerminalExit(id, () => {
-        if (!disposed) term.writeln("\r\n\x1b[90m[ proses berakhir ]\x1b[0m");
+        if (disposed) return;
+        term.writeln("\r\n\x1b[90m[ proses berakhir ]\x1b[0m");
+        onExitRef.current?.();
       });
       if (disposed) {
         uExit();

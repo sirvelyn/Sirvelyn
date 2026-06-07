@@ -70,6 +70,7 @@ export function TerminalArea() {
               cwd={cwdFor(t.workspaceId)}
               title={t.title}
               shell={t.shell}
+              dead={t.dead}
               visible={viewMode === "split" ? true : t.id === activeId}
               active={t.id === activeId}
             />

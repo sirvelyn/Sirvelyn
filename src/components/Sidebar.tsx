@@ -17,7 +17,8 @@ export function Sidebar() {
   const defaultShell = useStore((s) => s.defaultShell);
   const setDefaultShell = useStore((s) => s.setDefaultShell);
 
-  const total = terminals.length;
+  // Exited tabs no longer hold a backend slot, so the limit counts live ones.
+  const total = terminals.filter((t) => !t.dead).length;
   const atMax = total >= MAX_TERMINALS;
 
   async function pickFolder() {

@@ -4,10 +4,13 @@ import { ResizeHandles } from "./components/ResizeHandles";
 import { Sidebar } from "./components/Sidebar";
 import { TerminalArea } from "./components/TerminalArea";
 import { initPersistence } from "./lib/persist";
+import { useShortcuts } from "./lib/useShortcuts";
 import { useStore } from "./state/store";
 
 export default function App() {
   const hydrated = useStore((s) => s.hydrated);
+
+  useShortcuts();
 
   useEffect(() => {
     void initPersistence();

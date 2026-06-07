@@ -569,3 +569,76 @@ img.pixelated,
   font-size: 11px;
   color: var(--text-muted);
 }
+
+/* ---- Settings modal ---- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(6, 6, 26, 0.6);
+}
+.modal {
+  width: 460px;
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow: auto;
+  background: var(--surface);
+  border: 2px solid var(--border-soft);
+  box-shadow: 6px 6px 0 var(--border);
+}
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: var(--surface-2);
+  border-bottom: 2px solid var(--border);
+}
+.modal-title {
+  font-family: var(--font-title);
+  font-size: 10px;
+  color: var(--gold);
+  letter-spacing: 1px;
+}
+.modal-body {
+  padding: 12px;
+}
+.modal-section {
+  margin: 0 0 8px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+}
+.shortcut-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.shortcut-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.shortcut-desc {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--text);
+}
+.shortcut-keys {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink);
+  background: var(--gold);
+  border: 2px solid var(--border);
+  box-shadow: 2px 2px 0 var(--border);
+  padding: 2px 7px;
+  white-space: nowrap;
+}

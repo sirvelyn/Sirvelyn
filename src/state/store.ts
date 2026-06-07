@@ -44,6 +44,9 @@ interface AppState {
   setDefaultShell: (path: string) => void;
 }
 
+/** Full store value as returned by `useStore.getState()`. */
+export type AppStateSnapshot = AppState;
+
 export const useStore = create<AppState>((set, get) => ({
   workspaces: [],
   terminals: [],

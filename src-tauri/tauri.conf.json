@@ -29,13 +29,14 @@
   "plugins": {
     "updater": {
       "endpoints": [
-        "https://github.com/OWNER/REPO/releases/latest/download/latest.json"
+        "https://github.com/sirvelyn/Sirvelyn/releases/latest/download/latest.json"
       ],
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDZCRjkwRjAzMTQ0QUE1NEQKUldSTnBVb1VBdy81YS9nRUgraGtJK2lxM0lIZkliTDRNUGx1WS9xa2dkVzRWYlo5WWJ0aVRGaTkK"
     }
   },
   "bundle": {
     "active": true,
+    "createUpdaterArtifacts": true,
     "targets": "all",
     "icon": [
       "icons/32x32.png",

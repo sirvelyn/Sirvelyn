@@ -3,6 +3,9 @@ name = "sirvelyn"
 version = "0.1.0"
 description = "Pixel-art terminal emulator"
 authors = ["Sirvelyn"]
+license = "MIT"
+homepage = "https://github.com/sirvelyn/Sirvelyn"
+repository = "https://github.com/sirvelyn/Sirvelyn"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
